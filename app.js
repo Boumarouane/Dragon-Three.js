@@ -2,7 +2,11 @@
 let scene,
     camera,
     renderer,
-    controls
+    controls,
+    clock = new THREE.Clock(),
+    loader,
+    animation,
+    light
 
 // Fonction contenant les initialisations
 let init = () => {
@@ -11,7 +15,7 @@ let init = () => {
     scene = new THREE.Scene();
 
     camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 30000);
-    camera.position.set(-200, -200, -4000);
+    camera.position.set(2500, -400, -1000);
 
     renderer = new THREE.WebGLRenderer({
         canvas,
@@ -23,8 +27,8 @@ let init = () => {
 
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.addEventListener('change', renderer);
-    controls.minDistance = 4000;
-    controls.maxDistance = 4000;
+    controls.minDistance = 2000;
+    controls.maxDistance = 2500;
 
     let materialArray = [];
     let texture_ft = new THREE.TextureLoader().load('paze_ft.jpg');
@@ -58,9 +62,30 @@ let init = () => {
     let skyboxGeo = new THREE.BoxGeometry(10000, 10000, 10000);
     let skybox = new THREE.Mesh(skyboxGeo, materialArray);
     scene.add(skybox);
+
+    // Config loader
+    loader = new THREE.GLTFLoader();
+    loader.load('./bless_wb/scene.gltf', function (object) {
+
+        animation = new THREE.AnimationMixer(object.scene);
+
+        let action = animation.clipAction(object.animations[0]);
+        action.play();
+        object.scene.position.set(0, -1000, 0)
+        scene.add(object.scene);
+    });
+
+    // Config light
+    light = new THREE.AmbientLight(0xffffff, 3);
+    scene.add(light);
+
 }
 
 let animate = () => {
+
+    let delta = clock.getDelta()
+    if (animation) animation.update(delta);
+
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
 }
